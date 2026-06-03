@@ -3,7 +3,6 @@ import pandas as pd
 
 st.set_page_config(page_title="BurnWise", layout="wide")
 
-# HEADER
 st.title("💸 BurnWise")
 st.subheader("Find where your business is losing money and how to stop it.")
 
@@ -12,7 +11,6 @@ uploaded_file = st.file_uploader("Upload your CSV file", type=["csv"])
 if uploaded_file:
     df = pd.read_csv(uploaded_file)
 
-    # detect numeric column
     numeric_cols = df.select_dtypes(include='number').columns
 
     if len(numeric_cols) == 0:
@@ -25,7 +23,7 @@ if uploaded_file:
         max_spend = df[amount_col].max()
         waste_estimate = total_spend * 0.1
 
-        # DASHBOARD METRICS (clean UI)
+        # METRICS
         col1, col2, col3, col4 = st.columns(4)
 
         col1.metric("Total Spend", f"€{total_spend:.2f}")
@@ -35,17 +33,23 @@ if uploaded_file:
 
         st.divider()
 
-        # INSIGHTS SECTION
-        st.subheader("📊 Insights")
+        # INSIGHT MESSAGE
+        st.subheader("🧠 Insight")
+        st.info(f"You are spending €{total_spend:.2f}. Estimated unnecessary spending is around €{waste_estimate:.2f}.")
 
-        st.write("Top 5 Expenses")
+        if "category" in df.columns:
+            top_category = df.groupby("category")[amount_col].sum().idxmax()
+            st.warning(f"Highest spending category: {top_category}")
+
+        st.divider()
+
+        # DATA VISUALS
+        st.subheader("📊 Top Expenses")
         st.dataframe(df.nlargest(5, amount_col), use_container_width=True)
 
-        st.write("Duplicate Transactions")
+        st.subheader("⚠️ Duplicates")
         st.dataframe(df[df.duplicated()], use_container_width=True)
 
-        # CATEGORY BREAKDOWN
         if "category" in df.columns:
-            st.subheader("📂 Spending by Category")
-            category_summary = df.groupby("category")[amount_col].sum()
-            st.bar_chart(category_summary)
+            st.subheader("📂 Category Breakdown")
+            st.bar_chart(df.groupby("category")[amount_col].sum())
