@@ -23,16 +23,19 @@ if uploaded_file:
         max_spend = df[amount_col].max()
         waste_estimate = total_spend * 0.1
 
-        # SIMPLE BURNWISE SCORE (NEW)
         efficiency_score = max(0, 100 - (waste_estimate / total_spend) * 100)
 
-        st.info(
-            f"Total spend: €{total_spend:.2f} | "
-            f"Estimated waste: €{waste_estimate:.2f}"
-        )
+        # 🔥 HERO INSIGHT (MOST IMPORTANT PART)
+        if efficiency_score < 60:
+            st.error(f"⚠️ High spending inefficiency detected. You may be wasting ~€{waste_estimate:.2f}/month.")
+        else:
+            st.success(f"✅ Spending looks healthy. Estimated waste is ~€{waste_estimate:.2f}/month.")
 
         st.metric("🔥 BurnWise Score", f"{efficiency_score:.0f}/100")
 
+        st.divider()
+
+        # CORE METRICS ONLY (clean)
         col1, col2, col3, col4 = st.columns(4)
 
         col1.metric("Total Spend", f"€{total_spend:.2f}")
@@ -42,18 +45,17 @@ if uploaded_file:
 
         st.divider()
 
+        # ONLY MOST IMPORTANT INSIGHT
         if "category" in df.columns:
             top_category = df.groupby("category")[amount_col].sum().idxmax()
             st.warning(f"Highest spending category: {top_category}")
 
         st.divider()
 
+        # CLEAN DATA VIEWS
         st.subheader("📊 Top Expenses")
         st.dataframe(df.nlargest(5, amount_col), use_container_width=True)
 
-        st.subheader("⚠️ Duplicate Transactions")
-        st.dataframe(df[df.duplicated()], use_container_width=True)
-
+        st.subheader("📂 Category Breakdown")
         if "category" in df.columns:
-            st.subheader("📂 Category Breakdown")
             st.bar_chart(df.groupby("category")[amount_col].sum())
