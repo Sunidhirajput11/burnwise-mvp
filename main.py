@@ -23,13 +23,16 @@ if uploaded_file:
         max_spend = df[amount_col].max()
         waste_estimate = total_spend * 0.1
 
-        # HEADER INSIGHT (important)
+        # SIMPLE BURNWISE SCORE (NEW)
+        efficiency_score = max(0, 100 - (waste_estimate / total_spend) * 100)
+
         st.info(
-            f"Your total spending is €{total_spend:.2f}. "
-            f"Estimated avoidable waste is around €{waste_estimate:.2f}."
+            f"Total spend: €{total_spend:.2f} | "
+            f"Estimated waste: €{waste_estimate:.2f}"
         )
 
-        # METRICS
+        st.metric("🔥 BurnWise Score", f"{efficiency_score:.0f}/100")
+
         col1, col2, col3, col4 = st.columns(4)
 
         col1.metric("Total Spend", f"€{total_spend:.2f}")
@@ -39,14 +42,12 @@ if uploaded_file:
 
         st.divider()
 
-        # CATEGORY INSIGHT
         if "category" in df.columns:
             top_category = df.groupby("category")[amount_col].sum().idxmax()
             st.warning(f"Highest spending category: {top_category}")
 
         st.divider()
 
-        # DATA
         st.subheader("📊 Top Expenses")
         st.dataframe(df.nlargest(5, amount_col), use_container_width=True)
 
